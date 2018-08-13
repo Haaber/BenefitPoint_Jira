@@ -1,0 +1,550 @@
+
+$webResourceManager.requireResource("com.vp.jira.project:valuepoints-resources")
+
+<div class="aui-tabs horizontal-tabs" data-aui-persist data-aui-responsive id="allTabs">
+        <ul class="tabs-menu" id="BPTabs">
+            <li class="menu-item active-tab">
+                <a href="#benefit-points-tab" data-toggle="tab">Benefit Points</a>
+            </li>
+            <li class="menu-item">
+                <a href="#objectives-tab" data-toggle="tab">Objectives</a>
+            </li>
+            <li class="menu-item">
+                <a href="#contribution-tab" data-toggle="tab">Contributions</a>
+            </li>
+            <li class="menu-item">
+                <a href="#returns-tab" data-toggle="tab">Returns</a>
+            </li>
+            <li class="menu-item">
+                <a href="#balanced-benefit-point-tab" data-toggle="tab">Balanced Benefit Points</a>
+            </li>
+        </ul>
+        <div class="tabs-pane active-pane" id="benefit-points-tab">
+
+                <section class="aui-page-panel-content">
+                    <center><h4>What is a Benefit Point?</h4></center>
+                    <hr>
+                    A Benefit Point is a numerical value to indicate the benefit a given Epic provides in relation to an Objective. Benefit Points is similar to Story Points, but they are business value estimates.
+                    <br>
+                    It is recommended to use relative sizes and follow a size scheme that the project is familiar with e.g. the fibonacci numbers.
+                </section>
+                <section class="aui-page-panel-content">
+                    <center><h4>How to assign Benefit Points</h4></center>
+                    <hr>
+                    To assign Benefit Points, the key is to assess how much each Epic contributes to a project's Objectives.
+                </section>
+                <section class="aui-page-panel-content">
+                    <center><h4>Why use Benefit Points?</h4></center>
+                    <hr>
+                    Usually, Epics are assigned cost estimates used for prioritization. We believe that taking value into account when prioritizing, will assist in creating more value in a project.
+                </section>
+            <hr>
+                <table class="aui aui-table-sortable">
+                    <thead>
+                    <tr>
+                        <th id="epic" style="text-align:center" class="aui-table-column-issue-key">Epic</th>
+
+                        #foreach($objective in $objectives)
+                            <th style="text-align:center" class="aui-table-column-unsortable">
+                                Objective $objective.getID()
+                                <br>
+                                $objective.getDescription()
+                            </th>
+                        #end
+
+                        <th id="total" style="text-align: center">Total</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <form id="benefit-point-table-form" class="aui" action="http://localhost:2990/jira/plugins/servlet/benefitpointservlet" method="post">
+                        #set($bpBool = false)
+                        #foreach($issue in $issues)
+                        <tr>
+                            <td headers="epic" style="text-align:center"><a href="$project.getKey()/issues/$issue.getKey()">$issue.getSummary()</a></td>
+                            #foreach($objective in $objectives)
+                                #foreach($benefitpoint in $benefitpoints)
+                                    #if ($benefitpoint.getEpicID() == $issue.getId() && $benefitpoint.getObjectiveID() == $objective.getID())
+                                        <td style="text-align: center"><input class="input-fields" style="text-align:center;" id="$issue.getId()-$objective.getID()" name="$issue.getId()-$objective.getID()" type="number" value="$benefitpoint.getValue()"></td>
+                                        #set($bpBool = true)
+                                    #end
+                                #end
+                                #if ($bpBool == false)
+                                    <td style="text-align: center"><input class="input-fields" style="text-align:center;" id="$issue.getId()-$objective.getID()" name="$issue.getId()-$objective.getID()" type="number"></td>
+                                #else
+                                    #set($bpBool = false)
+                                #end
+                            #end
+                            <!--Here it should show the total values calculated in the Java file-->
+                            <td headers="total" style="text-align: center">$epicObjTotal.get($issues.indexOf($issue))</td>
+                        </tr>
+                        #end
+                        <input type="submit" style="visibility: hidden;"/>
+                    </form>
+                    </tbody>
+                    <tbody>
+                    <tr>
+                        <td headers="epic" style="text-align: center"><b>Total</b></td>
+
+                        #foreach($objEpicTotal in $objEpicsTotal)
+                            <td style="text-align: center">$objEpicTotal</td>
+                        #end
+
+                        <td headers="total" style="text-align: center">$bpTotal</td>
+                    </tr>
+                    </tbody>
+                </table>
+            <button id="save-benefit-points" class="aui-button aui-button-primary" type="submit" value="Save Benefit Points" form="benefit-point-table-form" style="float:right">Save Benefit Points</button>
+        </div>
+
+        <div class="tabs-pane" id="contribution-tab">
+
+                <section class="aui-page-panel-content">
+                    <center><h4>What is a Contribution?</h4></center>
+                    <hr>
+                    A Contribution is the percentage an Objective, if fulfilled, will contribute to a Return.
+                    <br>
+                    As an Example, an Objective may contribute 50% to a Return with the expected overall return of 10 million. The Objective would then contribute with 5 million.
+                </section>
+                <section class="aui-page-panel-content">
+                    <center><h4>How to assign a Contribution</h4></center>
+                    <hr>
+                    Assigning a Contribution is done by assessing the estimated contribution an Objective will have, relative to a project's Returns.
+                    <br>
+                    It is recommended to use percentage(0-100) for assigning Contributions.
+                </section>
+                <section class="aui-page-panel-content">
+                    <center><h4>Why assign a Contribution?</h4></center>
+                    <hr>
+                    Contributions are important, as they determine the distribution of the overall return for each Return relative to the Objectives. This information is used to calculated the Balanced Benefit Points.
+                </section>
+
+            <hr>
+
+                <table class="aui">
+                    <thead>
+                    <tr>
+                        <th id="objectives" width="100" style="text-align:center">Objectives</th>
+                        #foreach($return in $returns)
+                            <th width="80" style="text-align:center">
+                                Return $return.getID()
+                                <br>
+                                $return.getDescription()
+                            </th>
+                        #end
+                        <th id="conTotal" width="100" style="text-align:center">Total</th>
+                        <th id="projectweight" width="100" style="text-align:center">Project Weight</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <form id="contributionform" class="aui" action="http://localhost:2990/jira/plugins/servlet/contribution" method="post">
+                        <tr>
+                            <td headers="objectives" style="text-align:center"><b>Contribution</b></td>
+                            #foreach($return in $returns)
+                                <th width="80" style="text-align:center">$return.getContribution()</th>
+                            #end
+                            <th id="conTotal" width="100" style="text-align:center"></th>
+                            <th id="projectweight" width="100" style="text-align:center"></th>
+                        </tr>
+                            #set($conBool = false)
+                            #foreach($objective in $objectives)
+                            <tr>
+                                <td headers="objectives" style="text-align:center">$objective.getDescription()</td>
+                                #foreach($return in $returns)
+                                    #foreach($contribution in $contributions)
+                                        #if ($contribution.getReturnID() == $return.getID() && $contribution.getObjectiveID() == $objective.getID())
+                                            <td style="text-align: center"><input class="input-fields" min="0" max="100" step="0.5" style="text-align:center;" id="$return.getID()-$objective.getID()" name="$return.getID()-$objective.getID()" type="number" value="$contribution.getValue()"></td>
+                                            #set($conBool = true)
+                                        #end
+                                    #end
+                                    #if ($conBool == false)
+                                        <td style="text-align: center"><input class="input-fields" min="0" max="100" step="0.5" style="text-align:center;" id="$return.getID()-$objective.getID()" name="$return.getID()-$objective.getID()" type="number"></td>
+                                    #else
+                                        #set($conBool = false)
+                                    #end
+                                #end
+                                <th id="conTotal" width="100" style="text-align:center">$conObjTotal.get($objectives.indexOf($objective))</th>
+                                <th id="projectweight" width="100" style="text-align:center">$projectWeights.get($objectives.indexOf($objective))</th>
+                            </tr>
+                            #end
+                        <tr>
+                            <td headers="objectives" style="text-align:center"><b>Total</b></td>
+                            #foreach($return in $returns)
+                                <td style="text-align: center">$conRetTotal.get($returns.indexOf($return))%</td>
+                            #end
+                            <th id="conTotal" width="100" style="text-align:center">$conTotal</th>
+                            <th id="projectweight" width="100" style="text-align:center">$projectWeightTotal</th>
+                        </tr>
+                        <input type="submit" style="visibility: hidden;"/>
+                    </form>
+                    </tbody>
+                </table>
+            <button id="save-contributions" class="aui-button aui-button-primary" type="submit" value="Save Contributions" form="contributionform" style="float:right">Save Contributions</button>
+        </div>
+
+        <div class="tabs-pane" id="balanced-benefit-point-tab">
+
+            <section class="aui-page-panel-content">
+                <center><h4>What is a Balanced Benefit Point?</h4></center>
+                <hr>
+                A Balanced Benefit Point is the calculated value of a Benefit Point, taking into various information into account to create balance.
+            </section>
+            <section class="aui-page-panel-content">
+                <center><h4>How is a Balanced Benefit Point calculated?</h4></center>
+                <hr>
+                A Balanced Benefit Point is calculated by taking a single Benefit Point(BP), the Project Weight(PW), the Total amount of Benefit Points(TotalBP), and the total amount of Benefit Points for the specific Objective associated with the single Benefit Point(TotalBP(Obj)).
+                <br>
+                The formula is BP*PW*TotalBP/TotalBP(Obj) = Balanced BP.
+            </section>
+            <section class="aui-page-panel-content">
+                <center><h4>Why use Balanced Benefit Points?</h4></center>
+                <hr>
+                Balanced Benefit Points provides the balanced benefit for each Epic. They have taken into account the Contributions distribution and balanced the individual Epics value.
+                <br>
+                Balanced Benefit Point exists to prioritize Epics to create the most value at all times.
+            </section>
+
+            <hr>
+
+            <table class="aui aui-table-sortable">
+                <thead>
+                <tr>
+                    <th id="epic" width="40" style="text-align:center">Epic</th>
+
+                    #foreach($objective in $objectives)
+                        <th width="100" style="text-align:center">
+                            Objective $objective.getID()
+                            <br>
+                            $objective.getDescription()
+                        </th>
+                    #end
+
+                    <th id="total" width="40" style="text-align: center">Total</th>
+                </tr>
+                </thead>
+                <tbody>
+                    #set($bpBool = false)
+                    #foreach($issue in $issues)
+                    <tr>
+                        <td headers="epic" style="text-align:center"><a href="$project.getKey()/issues/$issue.getKey()">$issue.getSummary()</a></td>
+                        #foreach($objective in $objectives)
+                            #foreach($balancedbenefitpoint in $balancedBenefitPoints)
+                                #if ($balancedbenefitpoint.getEpicID() == $issue.getId() && $balancedbenefitpoint.getObjectiveID() == $objective.getID())
+                                    <td style="text-align: center">$balancedbenefitpoint.getBalancedBP()</td>
+                                    #set($bpBool = true)
+                                #end
+                            #end
+                            #if ($bpBool == false)
+                                <td style="text-align: center">None</td>
+                            #else
+                                #set($bpBool = false)
+                            #end
+                        #end
+                        <!--Here it should show the total values calculated in the Java file-->
+                        <td headers="total" style="text-align: center">$balancedEpicTotals.get($issues.indexOf($issue))</td>
+                    </tr>
+                    #end
+                </tbody>
+                <tbody>
+                <tr>
+                    <td headers="epic" style="text-align: center"><b>Total</b></td>
+
+                    #foreach($balancedObjectiveTotal in $balancedObjectiveTotals)
+                        <td style="text-align: center">$balancedObjectiveTotal</td>
+                    #end
+
+                    <td headers="total" style="text-align: center">$balancedBenefitPointsTotal</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tabs-pane" id="objectives-tab">
+
+            <section class="aui-page-panel-content">
+                <center><h4>What is an Objective?</h4></center>
+                <hr>
+                An Objective is a goal, which a project should fulfill. Objectives are the reasons for initiating the development of the project.
+                <br>
+                An Objective could be optimizing a storage facility by 30%.
+            </section>
+            <section class="aui-page-panel-content">
+                <center><h4>How to determine an Objective?</h4></center>
+                <hr>
+                Objectives are determined before project initialization, typically by the organization wanting the end product of the project.
+                <br>
+                An Objective should have a description.
+            </section>
+            <section class="aui-page-panel-content">
+                <center><h4>Create an Objective</h4></center>
+                <hr>
+                To create a new Objective, click the Create Objective button and fill in the field.
+                <center><button id="add-objective-button" class="aui-button aui-button-primary">Create Objective</button></center>
+            </section>
+
+            <hr>
+
+                <section id="add-objective-dialog" class="aui-dialog2 aui-dialog2-small aui-layer" role="dialog" aria-hidden="true">
+                    <header class="aui-dialog2-header">
+                        <h2 class="aui-dialog2-header-main">Create a new Objective</h2>
+                        <a class="aui-dialog2-header-close">
+                            <span class="aui-icon aui-icon-small aui-iconfont-close-dialog">Close</span>
+                        </a>
+                    </header>
+                    <div class="aui-dialog2-content">
+                        <form id="add-objective-form" class="aui" action="http://localhost:2990/jira/plugins/servlet/objective" method="post">
+                            <div>
+                                <p>You are about to create a new Objective. Please enter a description.</p>
+                            </div>
+                            <div class="field-group">
+                                <label for="objectiveDescription">
+                                    Description:
+                                </label>
+                                <input id="objectiveDescription" class="text long-field" type="text" name="objectiveDescription" placeholder="Description">
+                            </div>
+                        </form>
+                    </div>
+                            <footer class="aui-dialog2-footer">
+                                <div class="aui-dialog2-footer-actions">
+                                    <button id="objective-dialog-submit-button" class="aui-button aui-button-primary" form="add-objective-form" type="submit" value="Create">Create</button>
+                                </div>
+                            </footer>
+                </section>
+
+                #foreach($objective in $objectives)
+
+                    <section id="objective-delete-dialog$objective.getID()" class="aui-dialog2 aui-dialog2-small aui-dialog2-warning aui-layer" role="dialog" aria-hidden="true">
+                        <header class="aui-dialog2-header">
+                            <h2 class="aui-dialog2-header-main">Confirm you want to delete Objective $objective.getID()</h2>
+                            <a class="aui-dialog2-header-close">
+                                <span class="aui-icon aui-icon-small aui-iconfont-close-dialog">Close</span>
+                            </a>
+                        </header>
+                        <div class="aui-dialog2-content">
+                            <form id="delete-objective-form$objective.getID()" class="aui" action="http://localhost:2990/jira/plugins/servlet/objective" method="post">
+                                <div>
+                                    <p>Please confirm that you wish to delete this Objective.</p>
+                                    <p>By deleting this Objective, you will also delete all Benefit Points and Contributions associated with this Objective.</p>
+                                </div>
+                                <div class="hidden">
+                                    <input name="objectiveID" value="$objective.getID()" type="hidden">
+                                </div>
+                                <div class="hidden">
+                                    <input name="objectiveDescription" value="$objective.getDescription()" type="hidden">
+                                </div>
+                            </form>
+                        </div>
+                        <footer class="aui-dialog2-footer">
+                            <div class="aui-dialog2-footer-actions">
+                                <button id="objective-delete-submit" class="aui-button aui-button-primary" form="delete-objective-form$objective.getID()" name="objective-delete-submit" type="submit" value="Delete">Delete</button>
+                            </div>
+                        </footer>
+
+                    </section>
+
+                    <section id="objective-edit-dialog$objective.getID()" class="aui-dialog2 aui-dialog2-small aui-layer" role="dialog" aria-hidden="true">
+                        <header class="aui-dialog2-header">
+                            <h2 class="aui-dialog2-header-main">Edit Objective $objective.getID()</h2>
+                            <a class="aui-dialog2-header-close">
+                                <span class="aui-icon aui-icon-small aui-iconfont-close-dialog">Close</span>
+                            </a>
+                        </header>
+                        <div class="aui-dialog2-content">
+                            <form id="edit-objective-form$objective.getID()" class="aui" action="http://localhost:2990/jira/plugins/servlet/objective" method="post">
+                                <div>
+                                    <p>You are about to edit this Objective. Please change the necessary fields and press the edit button.</p>
+                                    <input id="objectiveID" name="objectiveID" value="$objective.getID()" type="hidden">
+                                </div>
+                                <div class="field-group">
+                                    <label for="objectiveDescription">
+                                        Description:
+                                    </label>
+                                    <input id="objectiveDescription" class="text long-field" type="text" name="objectiveDescription" value="$objective.getDescription()" placeholder="Description">
+                                </div>
+                            </form>
+                        </div>
+                                <footer class="aui-dialog2-footer">
+                                    <div class="aui-dialog2-footer-actions">
+                                        <button id="edit-objective-submit" class="aui-button aui-button-primary" form="edit-objective-form$objective.getID()" name="edit-objective-submit" type="submit" value="Edit">Edit</button>
+                                        <!--<button id="edit-objective-cancel" class="aui-button aui-button-link dialogCancel" name="$objective.getID()">Cancel</button>-->
+                                    </div>
+                                </footer>
+                    </section>
+                #end
+
+            <table class="aui">
+                <thead>
+                <tr>
+                    <th id="objective"  style="text-align:center">Objective</th>
+                    <th id="objDescription"  style="text-align:center">Description</th>
+                    <th id="objEdit"  style="text-align:center"></th>
+                    <th id="objDelete"  style="text-align:center"></th>
+                </tr>
+                </thead>
+                <tbody>
+                    #foreach($objective in $objectives)
+                        <tr>
+                            <td headers="objective" style="text-align: center">$objective.getID()</td>
+                            <td headers="objDescription" style="text-align: center">$objective.getDescription()</td>
+                            <td headers="objEdit" style="text-align: center"><a class="dialog" name="EditObjective" id="$objective.getID()">Edit</a></td>
+                            <td headers="objDelete" style="text-align: center"><a class="dialog" name="DeleteObjective" id="$objective.getID()">Delete</a></td>
+                        </tr>
+                    #end
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tabs-pane" id="returns-tab">
+
+            <section class="aui-page-panel-content">
+                <center><h4>What is a Return?</h4></center>
+                <hr>
+                A Return is the representation of the planned return of a project. A Return consists of an estimated overall return.
+                <br>
+                An example of a Return could be the optimization of a storage facility, which would have an estimated overall return of 4 million.
+            </section>
+            <section class="aui-page-panel-content">
+                <center><h4>How to determine a Return?</h4></center>
+                <hr>
+                A Return is determined between the strategic management and the project's management.
+            </section>
+            <section class="aui-page-panel-content">
+                <center><h4>Create a Return</h4></center>
+                <hr>
+                To create a new Return, click the Create Return button and fill in the fields.
+                <center><button id="add-return-button" class="aui-button aui-button-primary">Create Return</button></center>
+            </section>
+
+            <hr>
+
+                <section id="add-return-dialog" class="aui-dialog2 aui-dialog2-small aui-layer" role="dialog" aria-hidden="true">
+                    <header class="aui-dialog2-header">
+                        <h2 class="aui-dialog2-header-main">Create a new Return</h2>
+                        <a class="aui-dialog2-header-close">
+                            <span class="aui-icon aui-icon-small aui-iconfont-close-dialog">Close</span>
+                        </a>
+                    </header>
+                    <div class="aui-dialog2-content">
+                        <form id="add-return-form" class="aui" action="http://localhost:2990/jira/plugins/servlet/return" method="post">
+                            <div>
+                                <p>You are about to create a new Return. Please fill in the below fields before creating a new Return.</p>
+                            </div>
+                        <div class="field-group">
+                            <label for="returnDescription">
+                                Description:
+                            </label>
+                            <input id="returnDescription" class="text long-field" type="text" name="returnDescription" placeholder="Description">
+                        </div>
+                        <div class="field-group">
+                            <label for="returnContribution">
+                                Contribution:
+                            </label>
+                            <input id="returnContribution" class="text long-field" type="number" min="0" max="10000000000000" step="0.005" name="returnContribution" placeholder="Value">
+                        </div>
+                        </form>
+                    </div>
+
+                    <footer class="aui-dialog2-footer">
+                        <div class="aui-dialog2-footer-actions">
+                            <button id="return-dialog-submit-button" class="aui-button aui-button-primary" form="add-return-form" type="submit" value="Create">Create</button>
+                        </div>
+                    </footer>
+
+                </section>
+
+                #foreach($return in $returns)
+
+                    <section id="return-delete-dialog$return.getID()" class="aui-dialog2 aui-dialog2-small aui-dialog2-warning aui-layer" role="dialog" aria-hidden="true">
+                        <header class="aui-dialog2-header">
+                            <h2 class="aui-dialog2-header-main">Confirm you want to delete Return $return.getID()</h2>
+                            <a class="aui-dialog2-header-close">
+                                <span class="aui-icon aui-icon-small aui-iconfont-close-dialog">Close</span>
+                            </a>
+                        </header>
+                        <div class="aui-dialog2-content">
+                            <form id="delete-return-form$return.getID()" class="aui" action="http://localhost:2990/jira/plugins/servlet/return" method="post">
+                                <div>
+                                    <p>Please confirm that you wish to delete this Return.</p>
+                                    <p>By deleting this Return, you will also delete all contributions associated with this Return.</p>
+                                </div>
+                                <div class="hidden">
+                                    <input name="returnID" value="$return.getID()" type="hidden">
+                                </div>
+                                <div class="hidden">
+                                    <input name="returnDescription" value="$return.getDescription()" type="hidden">
+                                </div>
+                                <div class="hidden">
+                                    <input name="returnContribution" value="$return.getContribution()" type="hidden">
+                                </div>
+                            </form>
+                        </div>
+                                <footer class="aui-dialog2-footer">
+                                    <div class="aui-dialog2-footer-actions">
+                                        <button id="return-delete-submit" class="aui-button aui-button-primary" form="delete-return-form$return.getID()" name="return-delete-submit" type="submit" value="Delete">Delete</button>
+                                        <!--<button id="delete-return-cancel" class="aui-button aui-button-link dialogCancel" name="$return.getID()">Cancel</button>-->
+                                    </div>
+                                </footer>
+
+                    </section>
+
+                    <section id="return-edit-dialog$return.getID()" class="aui-dialog2 aui-dialog2-small aui-layer" role="dialog" aria-hidden="true">
+                        <header class="aui-dialog2-header">
+                            <h2 class="aui-dialog2-header-main">Edit Return $return.getID()</h2>
+                            <a class="aui-dialog2-header-close">
+                                <span class="aui-icon aui-icon-small aui-iconfont-close-dialog">Close</span>
+                            </a>
+                        </header>
+                        <div class="aui-dialog2-content">
+                            <form id="edit-return-form$return.getID()" class="aui" action="http://localhost:2990/jira/plugins/servlet/return" method="post">
+                                <div>
+                                    <p>You are about to edit this Return. Please edit the desired fields and press the edit button.</p>
+                                    <input name="returnID" value="$return.getID()" type="hidden">
+                                </div>
+
+                                <div class="field-group">
+                                    <label for="returnDescription">
+                                        Description:
+                                    </label>
+                                        <input id="returnDescription" class="text long-field" type="text" name="returnDescription" value="$return.getDescription()" placeholder="Description">
+                                </div>
+                                <div class="field-group">
+                                    <label for="returnContribution">
+                                        Contribution:
+                                    </label>
+                                        <input id="returnContribution" class="text long-field" type="number" min="0" max="10000000000000" step="0.005" name="returnContribution" value="$return.getContribution()" placeholder="Value">
+                                </div>
+                            </form>
+                        </div>
+                                <footer class="aui-dialog2-footer">
+                                    <div class="aui-dialog2-footer-actions">
+                                        <button id="edit-return-submit" class="aui-button aui-button-primary" form="edit-return-form$return.getID()" name="edit-return-submit" type="submit" value="Edit">Edit</button>
+                                        <!--<button id="edit-return-cancel" class="aui-button aui-button-link dialogCancel" name="$return.getID()">Cancel</button>-->
+                                    </div>
+                                </footer>
+
+                    </section>
+                #end
+
+            <table class="aui">
+                <thead>
+                <tr>
+                    <th id="return"  style="text-align:center">Return</th>
+                    <th id="returnDescription"  style="text-align:center">Description</th>
+                    <th id="returnContribution" style="text-align: center">Contribution</th>
+                    <th id="returnEdit"  style="text-align:center"></th>
+                    <th id="returnDelete"  style="text-align:center"></th>
+                </tr>
+                </thead>
+                <tbody>
+                    #foreach($return in $returns)
+                    <tr>
+                        <td headers="return" style="text-align: center">$return.getID()</td>
+                        <td headers="returnDescription" style="text-align: center">$return.getDescription()</td>
+                        <td headers="returnContribution" style="text-align: center">$return.getContribution()</td>
+                        <td headers="returnEdit" style="text-align: center"><a class="dialog" name="EditReturn" id="$return.getID()">Edit</a></td>
+                        <td headers="returnDelete" style="text-align: center"><a class="dialog" name="DeleteReturn" id="$return.getID()">Delete</a></td>
+                    </tr>
+                    #end
+                </tbody>
+            </table>
+        </div>
+</div>

@@ -1,0 +1,20 @@
+<table class="aui">
+    <thead>
+    <tr>
+        <th id="objective" width="40" style="text-align:center">Objectives</th>
+        <th id="bbp" width="100" style="text-align:center">Balanced Benefit Points</th>
+    </tr>
+    </thead>
+    <tbody>
+    #foreach($objective in $objectives)
+        <tr>
+            <td headers="objective" style="text-align:center">$objective.getDescription()</td>
+            <td headers="bbp" style="text-align:center">$balancedpoints.get($objectives.indexOf($objective))</td>
+        </tr>
+    #end
+    <tr>
+        <td headers="objective" style="text-align:center"><b>Total</b></td>
+        <td headers="bbp" style="text-align:center">$totalBenefitPoints</td>
+    </tr>
+    </tbody>
+</table>

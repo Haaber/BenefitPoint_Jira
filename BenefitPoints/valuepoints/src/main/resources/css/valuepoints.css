@@ -1,0 +1,10 @@
+.bp-sidebar-icon{
+    background-image: url("images/bpIcon4.png");
+}
+
+.input-fields{
+    border: none;
+    background: transparent;
+    width: 100%;
+}
+/* The Input changes here might be a tad wrong. It seems to cause an issue when creating epics. At least it should be testet if it does.*/

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<atlassian-plugin key="${atlassian.plugin.key}" name="${project.name}" plugins-version="2">
+  <plugin-info>
+    <description>${project.description}</description>
+    <version>${project.version}</version>
+    <vendor name="${project.organization.name}" url="${project.organization.url}"/>
+    <param name="plugin-icon">images/pluginIcon.png</param>
+    <param name="plugin-logo">images/pluginLogo.png</param>
+  </plugin-info>
+  <!-- add our i18n resource -->
+  <resource type="i18n" name="i18n" location="valuepoints"/>
+  <!-- add our web resources -->
+  <web-resource key="valuepoints-resources" name="valuepoints Web Resources">
+    <dependency>com.atlassian.auiplugin:ajs</dependency>
+    <dependency>com.atlassian.auiplugin:aui-table-sortable</dependency>
+    <dependency>com.atlassian.auiplugin:dialog2</dependency>
+    <resource type="download" name="valuepoints.css" location="/css/valuepoints.css"/>
+    <resource type="download" name="valuepoints.js" location="/js/valuepoints.js"/>
+    <resource type="download" name="images/" location="/images"/>
+    <context>valuepoints</context>
+    <context>jira.project.sidebar</context>
+  </web-resource>
+  <!--<web-item name="ValuePoints" i18n-name-key="value-points.name" key="value-points" section="jira.project.sidebar.plugins.navigation" weight="300">
+    <description key="value-points.description">The ValuePoints Plugin</description>
+    <label key="value-points.label"/>-->
+  <!--<resource name="iconLightbulb" type="download" location="images/lightbulb.png"/>-->
+  <!--<param name="iconClass" value="aui-icon-large icon-sidebar-release"/>-->
+  <!--<link linkId="value-points-link">www.google.dk</link>
+  </web-item>
+  <web-panel name="ValuePanel" i18n-name-key="value-panel.name" key="value-panel" location="/templates/valuepoint-1.vm" weight="1000">
+    <description key="value-panel.description">The ValuePanel Plugin</description>
+  </web-panel>-->
+  <resource name="iconLightbulb" type="download" location="images/lightbulb.png"/>
+  <web-item name="Points" i18n-name-key="points.name" key="points" section="jira.project.sidebar.plugins.navigation" weight="1000">
+    <description key="points.description">The Points Plugin</description>
+    <label key="points.label"/>
+    <link linkId="points-link">/projects/$pathEncodedProjectKey?selectedItem=com.atlassian.jira.jira-projects-plugin:value-panel</link>
+    <param name="iconClass" value="aui-icon-large bp-sidebar-icon"></param>
+  </web-item>
+  <web-panel name="ValuePanel" i18n-name-key="value-panel.name" key="value-panel" location="com.atlassian.jira.jira-projects-plugin:value-panel" weight="1000">
+    <description key="value-panel.description">The ValuePanel Plugin</description>
+    <context-provider class="com.vp.jira.project.web.ValuePanel"/>
+    <resource name="view" type="velocity" location="templates/valuepoint-1.vm"/>
+  </web-panel>
+  <web-panel name="BalancedBenefitPoints" i18n-name-key="balancedbp.name" key="balanced-benefit-points-panel" location="atl.jira.view.issue.right.context" weight="1000">
+    <description key="balanced-benefit-points.description">The Balanced Benefit Point Panel</description>
+    <context-provider class="com.vp.jira.project.web.EpicBalancedPanel"/>
+    <resource type="velocity" name="view" location="templates/balancedbenefitpoints-1.vm"/>
+    <condition class="com.vp.jira.project.cond.IsIssueEpicCondition"/>
+  </web-panel>
+  <ao key="ao-module">
+    <description>The module configuring the Active Objects service used by this plugin</description>
+    <entity>com.vp.jira.project.data.Objective</entity>
+    <entity>com.vp.jira.project.data.Return</entity>
+    <entity>com.vp.jira.project.data.BenefitPoint</entity>
+    <entity>com.vp.jira.project.data.Contribution</entity>
+  </ao>
+  <servlet name="Objective Servlet" class="com.vp.jira.project.servlet.ObjectiveServlet" key="objective-servlet">
+    <description>A servlet to add an objective</description>
+    <url-pattern>/objective</url-pattern>
+  </servlet>
+  <servlet name="Benefit Point Servlet" i18n-name-key="benefit-point-servlet.name" key="benefit-point-servlet" class="com.vp.jira.project.servlet.BenefitPointServlet">
+    <description key="benefit-point-servlet.description">The Benefit Point Servlet Plugin</description>
+    <url-pattern>/benefitpointservlet</url-pattern>
+  </servlet>
+  <servlet name="Return Servlet" i18n-name-key="return-servlet.name" key="return-servlet" class="com.vp.jira.project.servlet.ReturnServlet">
+    <description key="return-servlet.description">The Return Servlet Plugin</description>
+    <url-pattern>/return</url-pattern>
+  </servlet>
+  <servlet name="Contribution Servlet" i18n-name-key="contribution-servlet.name" key="contribution-servlet" class="com.vp.jira.project.servlet.ContributionServlet">
+    <description key="contribution.description">The Contribution Servlet Plugin</description>
+    <url-pattern>/contribution</url-pattern>
+  </servlet>
+</atlassian-plugin>
